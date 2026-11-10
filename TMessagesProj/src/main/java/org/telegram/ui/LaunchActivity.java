@@ -650,6 +650,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         })
 );
+        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+            startActivity(new android.content.Intent(
+                    this,
+                    FixGramLoginActivity.class
+            ));
+        });
+        
         checkSystemBarColors();
         handleIntent(getIntent(), false, savedInstanceState != null, false, null, true, true);
         try {
