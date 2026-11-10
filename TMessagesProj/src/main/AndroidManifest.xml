@@ -95,6 +95,11 @@
     <application
         android:name="org.telegram.messenger.ApplicationLoader"
         android:allowBackup="true"
+		        <activity
+            android:name="org.telegram.ui.FixGramLoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TMessages.Start"
+            android:windowSoftInputMode="adjustResize" />
         android:restoreAnyVersion="true"
         android:backupAgent=".BackupAgent"
         android:hardwareAccelerated="true"
