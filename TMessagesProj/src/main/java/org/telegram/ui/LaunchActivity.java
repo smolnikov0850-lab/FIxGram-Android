@@ -641,6 +641,15 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         }
         checkLayout();
+        org.telegram.messenger.FixGramApi.checkHealth((success, response) ->
+        AndroidUtilities.runOnUIThread(() -> {
+            String message = success
+                    ? "FIxGram API: сервер подключён"
+                    : "FIxGram API: ошибка — " + response;
+
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        })
+);
         checkSystemBarColors();
         handleIntent(getIntent(), false, savedInstanceState != null, false, null, true, true);
         try {
