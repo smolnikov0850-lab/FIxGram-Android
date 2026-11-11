@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,135 +18,120 @@ import org.telegram.messenger.FixGramApi;
 public class FixGramLoginActivity extends Activity {
 
     private EditText usernameInput;
-    private EditText displayNameInput;
     private EditText passwordInput;
-
     private TextView statusText;
     private Button submitButton;
+    private Button switchButton;
 
     private boolean registerMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         createScreen();
         checkSavedSession();
     }
 
+    private int dp(int value) {
+        return (int) (value * getResources()
+                .getDisplayMetrics().density + 0.5f);
+    }
+
     private void createScreen() {
-        ScrollView scrollView = new ScrollView(this);
-
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(dp(28), dp(40), dp(28), dp(28));
-        layout.setGravity(Gravity.CENTER_HORIZONTAL);
-
-        scrollView.addView(layout);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setGravity(Gravity.CENTER);
+        root.setPadding(dp(28), dp(32), dp(28), dp(32));
 
         TextView title = new TextView(this);
         title.setText("FIxGram");
-        title.setTextSize(32);
+        title.setTextSize(34);
         title.setGravity(Gravity.CENTER);
-        layout.addView(title, matchWrap());
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        root.addView(title, matchWrap());
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Твой независимый мессенджер");
-        subtitle.setTextSize(15);
+        subtitle.setText("Твой мессенджер");
+        subtitle.setTextSize(16);
         subtitle.setGravity(Gravity.CENTER);
-        addSpace(layout, 8);
-        layout.addView(subtitle, matchWrap());
+        root.addView(subtitle, matchWrap());
 
-        addSpace(layout, 32);
+        addSpace(root, 35);
 
         statusText = new TextView(this);
-        statusText.setText("Войди или создай аккаунт FIxGram");
+        statusText.setText("Войди или создай аккаунт");
         statusText.setTextSize(14);
         statusText.setGravity(Gravity.CENTER);
-        layout.addView(statusText, matchWrap());
+        root.addView(statusText, matchWrap());
 
-        addSpace(layout, 24);
+        addSpace(root, 20);
 
         usernameInput = new EditText(this);
         usernameInput.setSingleLine(true);
-        usernameInput.setHint("Имя пользователя");
-        usernameInput.setInputType( android.text.InputType.TYPE_CLASS_TEXT
-                | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        layout.addView(usernameInput, matchWidth());
-
-        displayNameInput = new EditText(this);
-        displayNameInput.setSingleLine(true);
-        displayNameInput.setHint("Отображаемое имя");
-        layout.addView(displayNameInput, matchWidth());
+        usernameInput.setHint("@username");
+        usernameInput.setInputType(
+                android.text.InputType.TYPE_CLASS_TEXT
+                        | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        root.addView(usernameInput, matchWidth());
 
         passwordInput = new EditText(this);
         passwordInput.setSingleLine(true);
-        passwordInput.setHint("Пароль");
+        passwordInput.setHint("Пароль (минимум 6 символов)");
         passwordInput.setInputType(
                 android.text.InputType.TYPE_CLASS_TEXT
                         | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        layout.addView(passwordInput, matchWidth());
+        root.addView(passwordInput, matchWidth());
 
-        addSpace(layout, 20);
+        addSpace(root, 20);
 
         submitButton = new Button(this);
-        submitButton.setText("Войти");
         submitButton.setOnClickListener(v -> submit());
-        layout.addView(submitButton, matchWidth());
+        root.addView(submitButton, matchWidth());
 
-        Button switchButton = new Button(this);
-        switchButton.setText("Создать новый аккаунт");
+        switchButton = new Button(this);
         switchButton.setOnClickListener(v -> {
             registerMode = !registerMode;
             updateMode();
         });
-        layout.addView(switchButton, matchWidth());
-
-        Button logoutButton = new Button(this);
-        logoutButton.setText("Выйти из аккаунта");
-        logoutButton.setOnClickListener(v -> {
-            FixGramApi.clearToken(this);
-            statusText.setText("Локальная сессия удалена");
-            Toast.makeText(this, "Вы вышли из FIxGram",
-                    Toast.LENGTH_SHORT).show();
-        });
-        addSpace(layout, 12);
-        layout.addView(logoutButton, matchWidth());
+        root.addView(switchButton, matchWidth());
 
         updateMode();
-        setContentView(scrollView);
+        setContentView(root);
     }
 
     private void updateMode() {
-        displayNameInput.setVisibility(
-                registerMode ? View.VISIBLE : View.GONE);
-
         submitButton.setText(
                 registerMode ? "Создать аккаунт" : "Войти");
 
-        passwordInput.setHint(
-                registerMode ? "Пароль (минимум 10 символов)" : "Пароль");
+        switchButton.setText(
+                registerMode
+                        ? "Уже есть аккаунт? Войти"
+                        : "Создать новый аккаунт");
 
         statusText.setText(
                 registerMode
-                        ? "Регистрация нового аккаунта FIxGram"
-                        : "Вход в аккаунт FIxGram");
+                        ? "Регистрация FIxGram"
+                        : "Вход в FIxGram");
     }
 
     private void submit() {
-        String username = usernameInput.getText().toString().trim();
+        String username = usernameInput.getText()
+                .toString().trim().replaceFirst("^@", "")
+                .toLowerCase();
+
         String password = passwordInput.getText().toString();
-        String displayName = displayNameInput.getText().toString().trim();
 
-        if (username.isEmpty() || password.isEmpty()) {
-            showMessage("Заполни имя пользователя и пароль");
+        if (!username.matches("[a-z0-9_]{5,32}")) {
+            showMessage("Username: 5–32 символа, латиница, цифры и _");
             return;
         }
 
-        if (registerMode && displayName.isEmpty()) {
-            showMessage("Введи отображаемое имя");
+        if (password.length() < 6) {
+            showMessage("Пароль должен содержать минимум 6 символов");
             return;
         }
+
+        final boolean creatingAccount = registerMode;
 
         submitButton.setEnabled(false);
         statusText.setText("Подключение к FIxGram...");
@@ -157,27 +141,26 @@ public class FixGramLoginActivity extends Activity {
 
             if (success) {
                 JSONObject user = data.optJSONObject("user");
-
                 String name = user != null
-                        ? user.optString("display_name", username)
+                        ? user.optString("username", username)
                         : username;
 
-                statusText.setText("Вы вошли как " + name);
+                statusText.setText("Вы вошли как @" + name);
 
-                showMessage(
-                        registerMode
-                                ? "Аккаунт FIxGram создан!"
-                                : "Вход выполнен!");
-
+                showMessage(creatingAccount
+                        ? "Аккаунт создан!"
+                        : "Вход выполнен!");
             } else {
                 statusText.setText("Не удалось выполнить запрос");
-                showMessage(error != null ? error : "Неизвестная ошибка");
+                showMessage(error != null ? error : "Ошибка сервера");
             }
         };
 
-        if (registerMode) {
+        if (creatingAccount) {
+            // Пока передаём username как отображаемое имя,
+            // чтобы сохранить совместимость с текущим API.
             FixGramApi.register(
-                    this, username, displayName, password, callback);
+                    this, username, username, password, callback);
         } else {
             FixGramApi.login(
                     this, username, password, callback);
@@ -191,31 +174,25 @@ public class FixGramLoginActivity extends Activity {
             return;
         }
 
-        statusText.setText("Проверяем сохранённую сессию...");
+        statusText.setText("Проверяем сессию...");
 
         FixGramApi.getMe(token, (success, data, error) -> {
             if (success) {
                 JSONObject user = data.optJSONObject("user");
-
                 if (user != null) {
                     statusText.setText(
-                            "Вы вошли как "
-                                    + user.optString("display_name"));
+                            "Вы вошли как @"
+                                    + user.optString("username"));
                 }
             } else {
                 FixGramApi.clearToken(this);
-                statusText.setText("Сессия истекла. Войди снова.");
+                statusText.setText("Войди в аккаунт FIxGram");
             }
         });
     }
 
     private void showMessage(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-    }
-
-    private int dp(int value) {
-        return (int) (value * getResources()
-                .getDisplayMetrics().density + 0.5f);
     }
 
     private LinearLayout.LayoutParams matchWrap() {
@@ -226,13 +203,13 @@ public class FixGramLoginActivity extends Activity {
 
     private LinearLayout.LayoutParams matchWidth() {
         LinearLayout.LayoutParams params = matchWrap();
-        params.topMargin = dp(8);
+        params.topMargin = dp(10);
         return params;
     }
 
     private void addSpace(LinearLayout layout, int height) {
         View space = new View(this);
-        layout.addView(space, new LinearLayout.LayoutParams(
-                1, dp(height)));
+        layout.addView(space,
+                new LinearLayout.LayoutParams(1, dp(height)));
     }
 }
