@@ -153,7 +153,6 @@ public class FixGramChatsActivity extends Activity {
         }
     });
 });
-        );
 
         LinearLayout.LayoutParams buttonParams =
                 new LinearLayout.LayoutParams(-2, -2);
