@@ -114,6 +114,10 @@
             android:exported="false"
             android:theme="@style/Theme.TMessages.Start"
             android:windowSoftInputMode="adjustResize" />
+		<activity
+    android:name="org.telegram.ui.FixGramChatsActivity"
+    android:exported="false"
+    android:theme="@style/Theme.TMessages.Start" />
         <!-- usesCleartextTraffic for browser supporting opening http:// links -->
 
         <activity-alias
