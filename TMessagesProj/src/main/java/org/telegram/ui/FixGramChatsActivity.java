@@ -42,7 +42,7 @@ public class FixGramChatsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        getWindow().setStatusBarColor(Color.rgb(34,  Unused));
+        getWindow().setStatusBarColor(Color.rgb(34, 139, 220));
         getWindow().setNavigationBarColor(Color.WHITE);
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
