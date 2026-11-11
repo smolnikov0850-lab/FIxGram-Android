@@ -242,4 +242,65 @@ public class FixGramApi {
         new Handler(Looper.getMainLooper()).post(
                 () -> callback.onResult(success, data, error));
     }
+        // Поиск пользователей
+    public static void searchUsers(
+            Context context,
+            String query,
+            AuthCallback callback
+    ) {
+        try {
+            String encoded = URLEncoder.encode(query, "UTF-8");
+            String token = getSavedToken(context);
+
+            if (token == null || token.isEmpty()) {
+                deliver(callback, false, null, "Необходимо войти в аккаунт");
+                return;
+            }
+
+            request("GET", "/api/users/search?q=" + encoded,
+                    null, token, callback);
+
+        } catch (Exception e) {
+            deliver(callback, false, null, e.getMessage());
+        }
+    }
+
+    // Загрузка списка чатов
+    public static void getChats(
+            Context context,
+            AuthCallback callback
+    ) {
+        String token = getSavedToken(context);
+
+        if (token == null || token.isEmpty()) {
+            deliver(callback, false, null, "Необходимо войти в аккаунт");
+            return;
+        }
+
+        request("GET", "/api/chats", null, token, callback);
+    }
+
+    // Загрузка истории сообщений
+    public static void getMessages(
+            Context context,
+            String chatId,
+            AuthCallback callback
+    ) {
+        try {
+            String token = getSavedToken(context);
+
+            if (token == null || token.isEmpty()) {
+                deliver(callback, false, null, "Необходимо войти в аккаунт");
+                return;
+            }
+
+            String encodedId = URLEncoder.encode(chatId, "UTF-8");
+
+            request("GET", "/api/chats/" + encodedId + "/messages",
+                    null, token, callback);
+
+        } catch (Exception e) {
+            deliver(callback, false, null, e.getMessage());
+        }
+    }
 }
