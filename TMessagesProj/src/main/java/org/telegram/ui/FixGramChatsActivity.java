@@ -131,9 +131,28 @@ public class FixGramChatsActivity extends Activity {
 
         Button findButton = new Button(this);
         findButton.setText("Найти пользователей");
-        findButton.setOnClickListener(v ->
-                Toast.makeText(this, "Поиск пользователей подключим следующим этапом",
-                        Toast.LENGTH_SHORT).show()
+    findButton.setOnClickListener(v -> {
+    String query = search.getText().toString().trim();
+
+    if (query.isEmpty()) {
+        Toast.makeText(this, "Введи имя пользователя",
+                Toast.LENGTH_SHORT).show();
+        return;
+    }
+
+    FixGramApi.searchUsers(this, query, (success, data, error) -> {
+        if (success) {
+            new android.app.AlertDialog.Builder(this)
+                    .setTitle("Результаты поиска")
+                    .setMessage(data.toString())
+                    .setPositiveButton("Закрыть", null)
+                    .show();
+        } else {
+            Toast.makeText(this, error,
+                    Toast.LENGTH_LONG).show();
+        }
+    });
+});
         );
 
         LinearLayout.LayoutParams buttonParams =
