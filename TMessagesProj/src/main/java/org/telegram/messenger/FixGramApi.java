@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
+import java.net.URLEncoder;
 
 import org.json.JSONObject;
 
