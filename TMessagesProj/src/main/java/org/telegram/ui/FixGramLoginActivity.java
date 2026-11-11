@@ -2,10 +2,12 @@
 package org.telegram.ui;
 
 import android.app.Activity;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -20,150 +22,242 @@ public class FixGramLoginActivity extends Activity {
     private EditText usernameInput;
     private EditText passwordInput;
     private TextView statusText;
-    private Button submitButton;
-    private Button switchButton;
+    private Button actionButton;
+    private Button modeButton;
 
     private boolean registerMode = false;
+    private boolean requestInProgress = false;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        createScreen();
-        checkSavedSession();
-    }
-
-    private int dp(int value) {
+    private int dp(float value) {
         return (int) (value * getResources()
                 .getDisplayMetrics().density + 0.5f);
     }
 
-    private void createScreen() {
+    private GradientDrawable rounded(int color, int radius) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(color);
+        drawable.setCornerRadius(dp(radius));
+        return drawable;
+    }
+
+    private TextView makeText(String value, int size, int color) {
+        TextView view = new TextView(this);
+        view.setText(value);
+        view.setTextSize(size);
+        view.setTextColor(color);
+        return view;
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        getWindow().setStatusBarColor(Color.rgb(41, 139, 220));
+        getWindow().setNavigationBarColor(Color.WHITE);
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        );
+
+        buildScreen();
+        checkSavedSession();
+    }
+
+    private void buildScreen() {
+        int blue = Color.rgb(41, 139, 220);
+        int dark = Color.rgb(35, 45, 55);
+        int grey = Color.rgb(125, 135, 145);
+
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setGravity(Gravity.CENTER);
-        root.setPadding(dp(28), dp(32), dp(28), dp(32));
+        root.setGravity(Gravity.CENTER_HORIZONTAL);
+        root.setPadding(dp(28), dp(30), dp(28), dp(24));
+        root.setBackgroundColor(Color.WHITE);
 
-        TextView title = new TextView(this);
-        title.setText("FIxGram");
-        title.setTextSize(34);
-        title.setGravity(Gravity.CENTER);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
-        root.addView(title, matchWrap());
+        TextView logo = makeText("FIxGram", 34, blue);
+        logo.setTypeface(null, Typeface.BOLD);
+        logo.setGravity(Gravity.CENTER);
 
-        TextView subtitle = new TextView(this);
-        subtitle.setText("Твой мессенджер");
-        subtitle.setTextSize(16);
+        root.addView(logo, new LinearLayout.LayoutParams(
+                -1, dp(65)
+        ));
+
+        TextView subtitle = makeText(
+                "Твой мир общения", 16, grey
+        );
         subtitle.setGravity(Gravity.CENTER);
-        root.addView(subtitle, matchWrap());
 
-        addSpace(root, 35);
-
-        statusText = new TextView(this);
-        statusText.setText("Войди или создай аккаунт");
-        statusText.setTextSize(14);
-        statusText.setGravity(Gravity.CENTER);
-        root.addView(statusText, matchWrap());
-
-        addSpace(root, 20);
+        LinearLayout.LayoutParams subtitleParams =
+                new LinearLayout.LayoutParams(-1, dp(35));
+        subtitleParams.bottomMargin = dp(35);
+        root.addView(subtitle, subtitleParams);
 
         usernameInput = new EditText(this);
         usernameInput.setSingleLine(true);
-        usernameInput.setHint("@username");
-        usernameInput.setInputType(
-                android.text.InputType.TYPE_CLASS_TEXT
-                        | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        root.addView(usernameInput, matchWidth());
+        usernameInput.setTextSize(16);
+        usernameInput.setHint("Имя пользователя");
+        usernameInput.setPadding(dp(16), 0, dp(16), 0);
+        usernameInput.setBackground(rounded(
+                Color.rgb(243, 245, 247), 12
+        ));
+
+        root.addView(usernameInput, new LinearLayout.LayoutParams(
+                -1, dp(54)
+        ));
 
         passwordInput = new EditText(this);
         passwordInput.setSingleLine(true);
-        passwordInput.setHint("Пароль (минимум 6 символов)");
+        passwordInput.setTextSize(16);
+        passwordInput.setHint("Пароль");
         passwordInput.setInputType(
                 android.text.InputType.TYPE_CLASS_TEXT
-                        | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        root.addView(passwordInput, matchWidth());
+                        | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        );
+        passwordInput.setPadding(dp(16), 0, dp(16), 0);
+        passwordInput.setBackground(rounded(
+                Color.rgb(243, 245, 247), 12
+        ));
 
-        addSpace(root, 20);
+        LinearLayout.LayoutParams passwordParams =
+                new LinearLayout.LayoutParams(-1, dp(54));
+        passwordParams.topMargin = dp(14);
+        root.addView(passwordInput, passwordParams);
 
-        submitButton = new Button(this);
-        submitButton.setOnClickListener(v -> submit());
-        root.addView(submitButton, matchWidth());
+        actionButton = new Button(this);
+        actionButton.setTextColor(Color.WHITE);
+        actionButton.setTextSize(15);
+        actionButton.setAllCaps(false);
+        actionButton.setBackground(rounded(blue, 14));
+        actionButton.setOnClickListener(v -> submit());
 
-        switchButton = new Button(this);
-        switchButton.setOnClickListener(v -> {
+        LinearLayout.LayoutParams actionParams =
+                new LinearLayout.LayoutParams(-1, dp(54));
+        actionParams.topMargin = dp(24);
+        root.addView(actionButton, actionParams);
+
+        modeButton = new Button(this);
+        modeButton.setAllCaps(false);
+        modeButton.setTextColor(blue);
+        modeButton.setBackgroundColor(Color.TRANSPARENT);
+        modeButton.setOnClickListener(v -> {
             registerMode = !registerMode;
             updateMode();
         });
-        root.addView(switchButton, matchWidth());
 
-        updateMode();
+        root.addView(modeButton, new LinearLayout.LayoutParams(
+                -1, dp(50)
+        ));
+
+        statusText = makeText("", 13, grey);
+        statusText.setGravity(Gravity.CENTER);
+        statusText.setPadding(dp(8), dp(10), dp(8), dp(10));
+
+        root.addView(statusText, new LinearLayout.LayoutParams(
+                -1, -2
+        ));
+
+        TextView footer = makeText(
+                "FIxGram · Независимый мессенджер",
+                12, grey
+        );
+        footer.setGravity(Gravity.CENTER);
+
+        LinearLayout.LayoutParams footerParams =
+                new LinearLayout.LayoutParams(-1, dp(40));
+        footerParams.topMargin = dp(20);
+        root.addView(footer, footerParams);
+
         setContentView(root);
+        updateMode();
     }
 
     private void updateMode() {
-        submitButton.setText(
-                registerMode ? "Создать аккаунт" : "Войти");
+        if (registerMode) {
+            actionButton.setText("Создать аккаунт");
+            modeButton.setText("Уже есть аккаунт? Войти");
+        } else {
+            actionButton.setText("Войти");
+            modeButton.setText("Нет аккаунта? Зарегистрироваться");
+        }
 
-        switchButton.setText(
-                registerMode
-                        ? "Уже есть аккаунт? Войти"
-                        : "Создать новый аккаунт");
-
-        statusText.setText(
-                registerMode
-                        ? "Регистрация FIxGram"
-                        : "Вход в FIxGram");
+        statusText.setText("");
     }
 
     private void submit() {
-        String username = usernameInput.getText()
-                .toString().trim().replaceFirst("^@", "")
-                .toLowerCase();
+        if (requestInProgress) {
+            return;
+        }
 
-        String password = passwordInput.getText().toString();
+        String username = usernameInput.getText()
+                .toString().trim().toLowerCase();
+
+        String password = passwordInput.getText()
+                .toString();
 
         if (!username.matches("[a-z0-9_]{5,32}")) {
-            showMessage("Username: 5–32 символа, латиница, цифры и _");
+            usernameInput.setError(
+                    "Используй 5–32 символа: a-z, 0-9 или _"
+            );
             return;
         }
 
-        if (password.length() < 6) {
-            showMessage("Пароль должен содержать минимум 6 символов");
+        if (password.length() < 10) {
+            passwordInput.setError(
+                    "Пароль должен содержать минимум 10 символов"
+            );
             return;
         }
 
-        final boolean creatingAccount = registerMode;
+        requestInProgress = true;
+        actionButton.setEnabled(false);
+        actionButton.setText("Подключение...");
+        statusText.setText("Связываемся с сервером FIxGram...");
 
-        submitButton.setEnabled(false);
-        statusText.setText("Подключение к FIxGram...");
+        FixGramApi.AuthCallback callback =
+                (success, data, error) -> {
+                    requestInProgress = false;
+                    actionButton.setEnabled(true);
+                    updateMode();
 
-        FixGramApi.AuthCallback callback = (success, data, error) -> {
-            submitButton.setEnabled(true);
+                    if (success) {
+                        statusText.setText("Вход выполнен!");
+                        Toast.makeText(
+                                this,
+                                registerMode
+                                        ? "Аккаунт создан!"
+                                        : "Добро пожаловать в FIxGram!",
+                                Toast.LENGTH_SHORT
+                        ).show();
 
-            if (success) {
-                JSONObject user = data.optJSONObject("user");
-                String name = user != null
-                        ? user.optString("username", username)
-                        : username;
+                        openChats();
+                    } else {
+                        String message = error == null
+                                ? "Не удалось выполнить запрос"
+                                : error;
 
-                statusText.setText("Вы вошли как @" + name);
+                        statusText.setText(message);
+                        Toast.makeText(
+                                this,
+                                message,
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                };
 
-                showMessage(creatingAccount
-                        ? "Аккаунт создан!"
-                        : "Вход выполнен!");
-            } else {
-                statusText.setText("Не удалось выполнить запрос");
-                showMessage(error != null ? error : "Ошибка сервера");
-            }
-        };
-
-        if (creatingAccount) {
-            // Пока передаём username как отображаемое имя,
-            // чтобы сохранить совместимость с текущим API.
+        if (registerMode) {
             FixGramApi.register(
-                    this, username, username, password, callback);
+                    this,
+                    username,
+                    username,
+                    password,
+                    callback
+            );
         } else {
             FixGramApi.login(
-                    this, username, password, callback);
+                    this,
+                    username,
+                    password,
+                    callback
+            );
         }
     }
 
@@ -174,42 +268,25 @@ public class FixGramLoginActivity extends Activity {
             return;
         }
 
-        statusText.setText("Проверяем сессию...");
+        statusText.setText("Проверяем сохранённый вход...");
 
         FixGramApi.getMe(token, (success, data, error) -> {
             if (success) {
-                JSONObject user = data.optJSONObject("user");
-                if (user != null) {
-                    statusText.setText(
-                            "Вы вошли как @"
-                                    + user.optString("username"));
-                }
+                openChats();
             } else {
                 FixGramApi.clearToken(this);
-                statusText.setText("Войди в аккаунт FIxGram");
+                statusText.setText(
+                        "Войди в свой аккаунт FIxGram"
+                );
             }
         });
     }
 
-    private void showMessage(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-    }
-
-    private LinearLayout.LayoutParams matchWrap() {
-        return new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-    }
-
-    private LinearLayout.LayoutParams matchWidth() {
-        LinearLayout.LayoutParams params = matchWrap();
-        params.topMargin = dp(10);
-        return params;
-    }
-
-    private void addSpace(LinearLayout layout, int height) {
-        View space = new View(this);
-        layout.addView(space,
-                new LinearLayout.LayoutParams(1, dp(height)));
+    private void openChats() {
+        startActivity(new android.content.Intent(
+                FixGramLoginActivity.this,
+                FixGramChatsActivity.class
+        ));
+        finish();
     }
 }
