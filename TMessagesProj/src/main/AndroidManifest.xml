@@ -92,6 +92,7 @@
         </intent>
     </queries>
 
+
     <application
         android:name="org.telegram.messenger.ApplicationLoader"
         android:allowBackup="true"
@@ -109,7 +110,14 @@
         android:usesCleartextTraffic="true"
         android:enableOnBackInvokedCallback="true"
     >
+        <activity
+            android:name="org.telegram.ui.FixGramLoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TMessages.Start"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- usesCleartextTraffic for browser supporting opening http:// links -->
+
 
         <activity-alias
             android:enabled="true"
